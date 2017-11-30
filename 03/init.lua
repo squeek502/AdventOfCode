@@ -40,3 +40,25 @@ end
 
 local numVisited = len2d(visited)
 print("Houses that got at least one present", numVisited)
+
+visited = {}
+local santaX, santaY = 0, 0
+local roboX, roboY = 0, 0
+local robo = false
+
+visit(santaX, santaY)
+visit(roboX, roboY)
+
+for c in input:gmatch('.') do
+  if robo then
+    roboX, roboY = instructions[c](roboX, roboY)
+    visit(roboX, roboY)
+  else
+    santaX, santaY = instructions[c](santaX, santaY)
+    visit(santaX, santaY)
+  end
+  robo = not robo
+end
+
+local numVisitedWithRobo = len2d(visited)
+print("Houses that got at least one present (with robo)", numVisitedWithRobo)
