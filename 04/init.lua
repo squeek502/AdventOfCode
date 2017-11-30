@@ -20,3 +20,13 @@ while true do
 end
 
 print(i)
+
+while true do
+  local sum = md5.sumhexa(input .. i)
+  if sum:match('^000000.*') then
+    break
+  end
+  i = i+1
+end
+
+print(i)
