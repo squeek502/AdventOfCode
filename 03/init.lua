@@ -12,9 +12,7 @@ local instructions = {
   ['>'] = function(x, y) return x+1, y end,
   ['<'] = function(x, y) return x-1, y end,
 }
-
 local visited = {}
-local x, y = 0, 0
 
 local function visit(x, y)
   if not visited[x] then visited[x] = {} end
@@ -32,31 +30,40 @@ local function len2d(tbl)
   return count
 end
 
+local Deliverer = {}
+Deliverer.__index = Deliverer
+
+function Deliverer.new()
+  local self = setmetatable({}, Deliverer)
+  self.x, self.y = 0, 0
+  visit(self.x, self.y)
+  return self
+end
+
+function Deliverer:move(instruction)
+  self.x, self.y = instructions[instruction](self.x, self.y)
+  visit(self.x, self.y)
+end
+
+-- Part 1
+local santa = Deliverer.new()
+
 for c in input:gmatch('.') do
-  visit(x, y)
-  x, y = instructions[c](x, y)
-  visit(x, y)
+  santa:move(c)
 end
 
 local numVisited = len2d(visited)
 print("Houses that got at least one present", numVisited)
 
+-- Part 2
 visited = {}
-local santaX, santaY = 0, 0
-local roboX, roboY = 0, 0
+santa = Deliverer.new()
+local roboSanta = Deliverer.new()
 local robo = false
 
-visit(santaX, santaY)
-visit(roboX, roboY)
-
 for c in input:gmatch('.') do
-  if robo then
-    roboX, roboY = instructions[c](roboX, roboY)
-    visit(roboX, roboY)
-  else
-    santaX, santaY = instructions[c](santaX, santaY)
-    visit(santaX, santaY)
-  end
+  local cur = robo and roboSanta or santa
+  cur:move(c)
   robo = not robo
 end
 
