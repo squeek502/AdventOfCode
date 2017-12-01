@@ -19,7 +19,7 @@ local illegalStrings = {
 }
 
 local function strContains(haystack, needle)
-  return haystack:find(needle, 0, true)
+  return haystack:find(needle, 1, true)
 end
 
 local function strContainsAny(haystack, needles)
@@ -46,12 +46,43 @@ local function isNice(str)
   return numVowels >= 3 and hasDoubleLetter and not hasIllegalStrings
 end
 
+local function findNonOverlappingLetterPair(str)
+  for i=1, #str-1 do
+    local pair = str:sub(i, i+1)
+    if str:find(pair, i+2, true) then
+      return pair
+    end
+  end
+  return nil
+end
+
+local function findRepeatedLetterWithSeperator(str)
+  for i=1, #str-2 do
+    local possible = str:sub(i, i+2)
+    if possible:sub(-1) == possible:sub(1,1) then
+      return possible
+    end
+  end
+  return nil
+end
+
+local function isNice2(str)
+  local hasPair = findNonOverlappingLetterPair(str) ~= nil
+  local hasRepeatedWithSep = findRepeatedLetterWithSeperator(str) ~= nil
+  return hasPair and hasRepeatedWithSep
+end
+
 local niceStrings = 0
+local nice2Strings = 0
 
 for _,line in ipairs(input) do
   if isNice(line) then
     niceStrings = niceStrings + 1
   end
+  if isNice2(line) then
+    nice2Strings = nice2Strings + 1
+  end
 end
 
 print("# Nice Strings", niceStrings)
+print("# Nice2 Strings", nice2Strings)
