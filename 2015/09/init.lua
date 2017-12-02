@@ -50,12 +50,18 @@ local function getAllPossiblePathLengths(from, traveled, visited)
 end
 
 local shortestPaths = {}
+local longestPaths = {}
 
 for place, connected in pairs(graph) do
   local possible = getAllPossiblePathLengths(place)
   local smallest = math.min(unpack(possible))
   table.insert(shortestPaths, smallest)
+  local largest = math.max(unpack(possible))
+  table.insert(longestPaths, largest)
 end
 
 local shortest = math.min(unpack(shortestPaths))
 print("Shortest path", shortest)
+
+local longest = math.max(unpack(longestPaths))
+print("Longest path", longest)
