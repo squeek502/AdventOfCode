@@ -31,11 +31,14 @@ local function getMatchingDigits(str, step)
   return matching
 end
 
+-- Part 1
 local matching = getMatchingDigits(input)
 local sum = arraySum(matching)
 
 print("Sum of matching digits", sum)
 
+-- Part 2
 matching = getMatchingDigits(input, #input/2)
 sum = arraySum(matching)
+
 print("Sum of matching digits (step=len/2)", sum)
