@@ -12,7 +12,7 @@ print(input)
 
 local i = 1
 while true do
-  local sum = md5.sumhexa(input .. i)
+  local sum = md5(input .. i)
   if sum:match('^00000.*') then
     break
   end
@@ -22,7 +22,7 @@ end
 print(i)
 
 while true do
-  local sum = md5.sumhexa(input .. i)
+  local sum = md5(input .. i)
   if sum:match('^000000.*') then
     break
   end
