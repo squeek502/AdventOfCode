@@ -27,3 +27,18 @@ for _, line in ipairs(input) do
 end
 
 print(unparsed - parsed)
+
+local function encode(str)
+  str = str:gsub('\\', '\\\\')
+  str = str:gsub('"', '\\"')
+  return '"' .. str .. '"'
+end
+
+local encoded = 0
+
+for _, line in ipairs(input) do
+  local encodedLine = encode(line)
+  encoded = encoded + #encodedLine
+end
+
+print(encoded - unparsed)
