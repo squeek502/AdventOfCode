@@ -64,3 +64,7 @@ end
 circuit.assemble(input)
 local a = circuit.resolve('a')
 print('a', a)
+
+signals = {['b'] = a}
+a = circuit.resolve('a')
+print('a', a)
