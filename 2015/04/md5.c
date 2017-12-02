@@ -210,7 +210,7 @@ static int lua_md5(lua_State *L)
    const uchar *data = luaL_checklstring(L, 1, &l);
    md5(data, (uint)l, hash);
    for (int idx=0; idx < 16; idx++)
-      sprintf(hex+idx*2, "%02x", hash[idx]);
+      snprintf(hex+idx*2, 3, "%02x", (uchar)hash[idx]);
    lua_pushlstring(L, hex, 32L);
    lua_pushlstring(L, hash, 16L);
    return 2;
