@@ -16,14 +16,14 @@ local grid = {}
 for i=1,w do
   grid[i] = {}
   for j=1,h do
-    grid[i][j] = false
+    grid[i][j] = 0
   end
 end
 
 local instructions = {
-  ["turn on"] = function(v) return true end,
-  ["toggle"] = function(v) return not v end,
-  ["turn off"] = function(v) return false end,
+  ["turn on"] = function(v) return v+1 end,
+  ["toggle"] = function(v) return v+2 end,
+  ["turn off"] = function(v) return math.max(0, v-1) end,
 }
 
 local function iteratorCollect(iterator)
@@ -45,13 +45,11 @@ for _, line in ipairs(input) do
   end
 end
 
-local lit = 0
+local brightness = 0
 for _, row in ipairs(grid) do
   for _, v in ipairs(row) do
-    if v then
-      lit = lit + 1
-    end
+    brightness = brightness + v
   end
 end
 
-print("Lights lit", lit)
+print("Total brightness", brightness)
