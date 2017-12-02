@@ -18,10 +18,11 @@ local function arraySum(tbl)
   return sum
 end
 
-local function getMatchingDigits(str)
+local function getMatchingDigits(str, step)
+  if step == nil then step = 1 end
   local matching = {}
   for i=1, #str do
-    local iNext = modIndex(i+1, #str)
+    local iNext = modIndex(i+step, #str)
     local cur, nex = tonumber(str:sub(i,i)), tonumber(str:sub(iNext,iNext))
     if cur == nex then
       table.insert(matching, cur)
@@ -34,3 +35,7 @@ local matching = getMatchingDigits(input)
 local sum = arraySum(matching)
 
 print("Sum of matching digits", sum)
+
+matching = getMatchingDigits(input, #input/2)
+sum = arraySum(matching)
+print("Sum of matching digits (step=len/2)", sum)
