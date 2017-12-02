@@ -11,9 +11,6 @@ local get = function(path)
 end
 local input = get('input.txt')
 
-local signals = {}
-local connections = {}
-
 local function parse(line)
   local input = line:match("^[a-z%d]+")
   if tonumber(input) ~= nil then input = tonumber(input) end
@@ -32,39 +29,49 @@ local operations = {
   ["NOT"] = function(_, b) return bit.bnot(b) end
 }
 
-local circuit = {}
+local Circuit = {}
+Circuit.__index = Circuit
 
-function circuit.resolve(v)
+function Circuit.new()
+  local self = setmetatable({}, Circuit)
+  self.signals = {}
+  self.connections = {}
+  return self
+end
+
+function Circuit:resolve(v)
   if type(v) == "string" then
-    if signals[v] then return signals[v] end
-    local source = connections[v]
-    signals[v] = circuit.process(unpack(source))
-    return signals[v]
+    if self.signals[v] then return self.signals[v] end
+    local source = self.connections[v]
+    self.signals[v] = self:process(unpack(source))
+    return self.signals[v]
   end
   return v
 end
 
-function circuit.process(input, op, arg)
-  local result = circuit.resolve(input)
+function Circuit:process(input, op, arg)
+  local result = self:resolve(input)
   if op then
-    result = operations[op](result, circuit.resolve(arg))
+    result = operations[op](result, self:resolve(arg))
     -- restrict result to 16 bits
     result = bit.band(result, 0xffff)
   end
   return result
 end
 
-function circuit.assemble(input)
+function Circuit:assemble(input)
+  self.connections = {}
   for _, line in ipairs(input) do
     local input, op, arg, out = parse(line)
-    connections[out] = {input, op, arg}
+    self.connections[out] = {input, op, arg}
   end
 end
 
-circuit.assemble(input)
-local a = circuit.resolve('a')
+local circuit = Circuit.new()
+circuit:assemble(input)
+local a = circuit:resolve('a')
 print('a', a)
 
-signals = {['b'] = a}
-a = circuit.resolve('a')
+circuit.signals = {['b'] = a}
+a = circuit:resolve('a')
 print('a', a)
