@@ -21,7 +21,10 @@ local function findMatchingSue(needle)
   for i,sue in ipairs(sues) do
     local matches = true
     for k,v in pairs(needle) do
-      if sue[k] ~= nil and sue[k] ~= v then
+      if sue[k] ~= nil and
+        ((type(v) == "number" and sue[k] ~= v) or
+        (type(v) == "function" and not v(sue[k])))
+      then
         matches = false
         break
       end
@@ -32,6 +35,7 @@ local function findMatchingSue(needle)
   end
 end
 
+-- Part 1
 local known = {
   children = 3,
   cats = 7,
@@ -46,4 +50,13 @@ local known = {
 }
 
 local sue = findMatchingSue(known)
+print(sue)
+
+-- Part 2
+known.cats = function(v) return v > 7 end
+known.pomeranians = function(v) return v < 3 end
+known.goldfish = function(v) return v < 5 end
+known.trees = function(v) return v > 3 end
+
+sue = findMatchingSue(known)
 print(sue)
