@@ -48,14 +48,9 @@ for _, line in ipairs(input) do
 end
 
 -- Part 1
-local traveled = {}
-
-for name, r in pairs(reindeer) do
-  traveled[name] = r:getTraveled(2503)
-end
-
 local max = -math.huge
-for name, dist in pairs(traveled) do
+for name, r in pairs(reindeer) do
+  local dist = r:getTraveled(2503)
   max = math.max(dist, max)
 end
 print(max)
