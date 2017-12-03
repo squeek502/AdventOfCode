@@ -7,15 +7,19 @@ local get = function(path)
 end
 local input = get('input.txt')
 
-local grid = {}
-
-for x, line in ipairs(input) do
-  grid[x] = {}
-  for y=1,#line do
-    local c = line:sub(y,y)
-    grid[x][y] = c == '#'
+local function makeGrid()
+  local grid = {}
+  for x, line in ipairs(input) do
+    grid[x] = {}
+    for y=1,#line do
+      local c = line:sub(y,y)
+      grid[x][y] = c == '#'
+    end
   end
+  return grid
 end
+
+local grid = makeGrid()
 
 local neighborOffsets = {
   {1,0}, {1,1}, {0,1}, {-1,1}, {-1,0}, {-1,-1}, {0,-1}, {1,-1}
@@ -66,6 +70,25 @@ end
 
 for i=1,100 do
   step()
+end
+
+print(countLit())
+
+-- Part 2
+local function stuckOn()
+  local w,h = #grid, #grid[1]
+  grid[1][1] = true
+  grid[w][h] = true
+  grid[1][h] = true
+  grid[w][1] = true
+end
+
+grid = makeGrid()
+stuckOn()
+
+for i=1,100 do
+  step()
+  stuckOn()
 end
 
 print(countLit())
