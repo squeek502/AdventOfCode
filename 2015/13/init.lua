@@ -79,6 +79,7 @@ local function calcHappiness(arrangement)
   return happiness
 end
 
+-- Part 1
 local arrangements = getPossibleArrangements()
 
 local happiness = {}
@@ -87,4 +88,25 @@ for _, arrangement in ipairs(arrangements) do
 end
 
 local maxHappiness = math.max(unpack(happiness))
+print(maxHappiness)
+
+-- Part 2
+local available = getAvailable()
+potential["Me"] = {}
+for person in pairs(available) do
+  potential["Me"][person] = 0
+  potential[person]["Me"] = 0
+end
+
+arrangements = getPossibleArrangements()
+
+happiness = {}
+for _, arrangement in ipairs(arrangements) do
+  table.insert(happiness, calcHappiness(arrangement))
+end
+
+maxHappiness = happiness[1]
+for i=2,#happiness do
+  maxHappiness = math.max(maxHappiness, happiness[i])
+end
 print(maxHappiness)
