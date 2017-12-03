@@ -34,7 +34,10 @@ function Recipe.new(ingredients)
   return self
 end
 
-function Recipe:score()
+function Recipe:score(targetCalories)
+  if targetCalories ~= nil and self:calories() ~= targetCalories then
+    return -math.huge
+  end
   local capacity, durability, flavor, texture = 0, 0, 0, 0
   for name, amount in pairs(self.ingredients) do
     local ingredient = ingredients[name]
@@ -44,6 +47,14 @@ function Recipe:score()
     texture = texture + ingredient.texture * amount
   end
   return math.max(0, capacity) * math.max(0, durability) * math.max(0, flavor) * math.max(0, texture)
+end
+
+function Recipe:calories()
+  local calories = 0
+  for name, amount in pairs(self.ingredients) do
+    calories = calories + ingredients[name].calories * amount
+  end
+  return calories
 end
 
 function Recipe:addIngredient(name, amount)
@@ -114,8 +125,11 @@ end
 
 local recipes = getPossibleRecipes()
 local maxScore = -math.huge
+local maxScoreCalories = -math.huge
 for _, recipe in ipairs(recipes) do
   maxScore = math.max(maxScore, recipe:score())
+  maxScoreCalories = math.max(maxScoreCalories, recipe:score(500))
 end
 print("# possible recipes", #recipes)
 print("Part 1", maxScore)
+print("Part 2", maxScoreCalories)
