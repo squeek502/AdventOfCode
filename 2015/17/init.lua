@@ -1,5 +1,3 @@
-local combinations = require('combinations')
-
 local get = function(path)
   local lines = {}
   for line in io.lines(path) do
@@ -13,6 +11,17 @@ local sizes = {}
 
 for _, line in ipairs(input) do
   table.insert(sizes, tonumber(line))
+end
+
+-- https://rosettacode.org/wiki/Power_set#Lua
+local function powerset(s, start)
+  start = start or 1
+  if(start > #s) then return {{}} end
+  local ret = powerset(s, start + 1)
+  for i = 1, #ret do
+    ret[#ret + 1] = {s[start], unpack(ret[i])}
+  end
+  return ret
 end
 
 local function filterCombos(combos, target)
@@ -29,7 +38,7 @@ local function filterCombos(combos, target)
   return valid
 end
 
-local combos = combinations(sizes)
+local combos = powerset(sizes)
 combos = filterCombos(combos, 150)
 print(#combos)
 
