@@ -40,3 +40,49 @@ end
 
 local x,y = getCoords(tonumber(input))
 print(math.abs(x) + math.abs(y))
+
+-- Part 2
+local spiral = {[0]={[0]=1}}
+
+-- returns an iterator that returns x,y coordinates in an infinite spiral
+local infiniteSpiral = function()
+  local x, y = 0, 0
+  local dx, dy = 1, 0
+  return function()
+    x, y = x + dx, y + dy
+    -- if at an appropriate point in the spiral, change direction
+    if x == y or (x < 0 and x == -y) or (x > 0 and y-1 == -x) then
+      dx, dy = -dy, dx
+    end
+    return x, y
+  end
+end
+
+local neighborOffsets = {
+  {1,0}, {1,1}, {0,1}, {-1,1}, {-1,0}, {-1,-1}, {0,-1}, {1,-1}
+}
+
+local function getNeighborsSum(x, y)
+  local sum = 0
+  for _, offset in ipairs(neighborOffsets) do
+    local dx, dy = unpack(offset)
+    if spiral[x+dx] and spiral[x+dx][y+dy] ~= nil then
+      sum = sum + spiral[x+dx][y+dy]
+    end
+  end
+  return sum
+end
+
+local biggerSum
+
+for x, y in infiniteSpiral() do
+  if not spiral[x] then spiral[x] = {} end
+  local sum = getNeighborsSum(x, y)
+  spiral[x][y] = sum
+  if sum > tonumber(input) then
+    biggerSum = sum
+    break
+  end
+end
+
+print(biggerSum)
