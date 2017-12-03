@@ -32,3 +32,20 @@ end
 local combos = combinations(sizes)
 combos = filterCombos(combos, 150)
 print(#combos)
+
+local function filterCombosForMinContainers(combos)
+  local min = math.huge
+  for i,combo in ipairs(combos) do
+    min = math.min(min, #combo)
+  end
+  local valid = {}
+  for i,combo in ipairs(combos) do
+    if #combo == min then
+      table.insert(valid, combo)
+    end
+  end
+  return valid
+end
+
+combos = filterCombosForMinContainers(combos)
+print(#combos)
