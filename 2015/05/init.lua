@@ -9,11 +9,6 @@ local get = function(path)
 end
 local input = get('input.txt')
 
-local doubleLetters = {}
-for i = string.byte('a'), string.byte('z') do
-  local c = string.char(i)
-  table.insert(doubleLetters, string.rep(c, 2))
-end
 local illegalStrings = {
   'ab', 'cd', 'pq', 'xy'
 }
@@ -41,34 +36,14 @@ end
 
 local function isNice(str)
   local numVowels = iteratorCount(str:gmatch('[aeiou]'))
-  local hasDoubleLetter = strContainsAny(str, doubleLetters)
+  local hasDoubleLetter = str:find('(.)%1')
   local hasIllegalStrings = strContainsAny(str, illegalStrings)
   return numVowels >= 3 and hasDoubleLetter and not hasIllegalStrings
 end
 
-local function findNonOverlappingLetterPair(str)
-  for i=1, #str-1 do
-    local pair = str:sub(i, i+1)
-    if str:find(pair, i+2, true) then
-      return pair
-    end
-  end
-  return nil
-end
-
-local function findRepeatedLetterWithSeperator(str)
-  for i=1, #str-2 do
-    local possible = str:sub(i, i+2)
-    if possible:sub(-1) == possible:sub(1,1) then
-      return possible
-    end
-  end
-  return nil
-end
-
 local function isNice2(str)
-  local hasPair = findNonOverlappingLetterPair(str) ~= nil
-  local hasRepeatedWithSep = findRepeatedLetterWithSeperator(str) ~= nil
+  local hasPair = str:find('(..)(.-)%1')
+  local hasRepeatedWithSep = str:find('(.).%1')
   return hasPair and hasRepeatedWithSep
 end
 
