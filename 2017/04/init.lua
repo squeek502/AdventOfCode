@@ -20,28 +20,21 @@ local function sortString(str)
   return table.concat(letters)
 end
 
-local function anagrams(word1, word2)
-  if #word1 ~= #word2 then return false end
-  return sortString(word1) == sortString(word2)
-end
-
 local function isValid2(phrase)
-  local words = {}
+  local seen = {}
   for word in phrase:gmatch("%w+") do
-    table.insert(words, word)
-  end
-  for i, word in ipairs(words) do
-    for j, word2 in ipairs(words) do
-      if i ~= j and anagrams(word, word2) then
-          return false
-      end
+    local sorted = sortString(word)
+    if seen[sorted] then
+      return false
     end
+    seen[sorted] = true
   end
   return true
 end
 
 local valid = 0
 local valid2 = 0
+
 for _,line in ipairs(input) do
   if isValid(line) then
     valid = valid+1
