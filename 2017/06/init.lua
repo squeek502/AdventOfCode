@@ -12,11 +12,7 @@ for count in input:gmatch('%d+') do
 end
 
 local function serialize(banks)
-  local str = ""
-  for i=1,#banks do
-    str = str .. i..':' .. banks[i] .. ' '
-  end
-  return str
+  return table.concat(banks, ' ')
 end
 
 local function findmax(tbl)
@@ -29,20 +25,37 @@ local function findmax(tbl)
   return maxi, max
 end
 
-local seen = {}
-local len = #banks
-local cycles = 0
-while not seen[serialize(banks)] do
-  seen[serialize(banks)] = true
-  local maxi, max = findmax(banks)
-  local blocks = max
-  banks[maxi] = 0
-  for offset=1,blocks do
-    local i = modIndex(maxi+offset, len)
-    banks[i] = banks[i] + 1
+local function iterate(banks, stopcond)
+  local len = #banks
+  local cycles = 0
+  while not stopcond(banks, cycles) do
+    local i, max = findmax(banks)
+    local blocks = max
+    banks[i] = 0
+    while blocks > 0 do
+      i = modIndex(i+1, len)
+      banks[i] = banks[i] + 1
+      blocks = blocks-1
+    end
+    cycles = cycles + 1
   end
-  cycles = cycles + 1
+  return cycles
 end
 
+-- Part 1
+local seen = {}
+local stopcond = function(state)
+  local s = serialize(state)
+  if seen[s] then return true end
+  seen[s] = true
+end
+local cycles = iterate(banks, stopcond)
 print(cycles)
 
+-- Part 2
+local target = serialize(banks)
+stopcond = function(state, cycle)
+  return serialize(state) == target and cycle > 0
+end
+cycles = iterate(banks, stopcond)
+print(cycles)
