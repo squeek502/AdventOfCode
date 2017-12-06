@@ -5,10 +5,8 @@ local function modIndex(index, size)
 end
 
 local banks = {}
-local i = 1
 for count in input:gmatch('%d+') do
-  banks[i] = tonumber(count)
-  i = i+1
+  table.insert(banks, tonumber(count))
 end
 
 local function serialize(banks)
@@ -29,13 +27,11 @@ local function iterate(banks, stopcond)
   local len = #banks
   local cycles = 0
   while not stopcond(banks, cycles) do
-    local i, max = findmax(banks)
-    local blocks = max
-    banks[i] = 0
-    while blocks > 0 do
-      i = modIndex(i+1, len)
+    local maxi, max = findmax(banks)
+    banks[maxi] = 0
+    for offset=1,max do
+      local i = modIndex(maxi+offset, len)
       banks[i] = banks[i] + 1
-      blocks = blocks-1
     end
     cycles = cycles + 1
   end
