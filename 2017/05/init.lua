@@ -6,8 +6,8 @@ for _, line in ipairs(input) do
   table.insert(instructions, jmp)
 end
 
-local cur, steps = 1, 0
-while cur <= #instructions do
+local cur, steps, len = 1, 0, #instructions
+while cur <= len do
   local jmp = instructions[cur]
   instructions[cur] = jmp+1
   cur = cur + jmp
@@ -22,8 +22,8 @@ for _, line in ipairs(input) do
   table.insert(instructions, jmp)
 end
 
-cur, steps = 1, 0
-while cur <= #instructions do
+cur, steps, len = 1, 0, #instructions
+while cur <= len do
   local jmp = instructions[cur]
   instructions[cur] = jmp >= 3 and jmp-1 or jmp+1
   cur = cur + jmp
