@@ -29,6 +29,17 @@ local conditions = {
 local registers = {}
 local function get(reg) return registers[reg] or 0 end
 
+local function getMax(registers)
+  local max = -math.huge
+  for register, v in pairs(registers) do
+    if v > max then
+      max = v
+    end
+  end
+  return max
+end
+
+local highestEver = -math.huge
 for _, instruction in ipairs(instructions) do
   local condition = instruction.condition
   local condfn = conditions[condition.condition]
@@ -36,12 +47,11 @@ for _, instruction in ipairs(instructions) do
     local opfn = operations[instruction.operation]
     registers[instruction.register] = opfn(get(instruction.register), instruction.value)
   end
-end
-
-local max = -math.huge
-for register, v in pairs(registers) do
-  if v > max then
-    max = v
+  local curMax = getMax(registers)
+  if curMax > highestEver then
+    highestEver = curMax
   end
 end
-print(max)
+
+print(getMax(registers))
+print(highestEver)
