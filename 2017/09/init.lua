@@ -31,6 +31,7 @@ local groups = Stack.new()
 local garbage = false
 local ignored = false
 local score = 0
+local garbageCount = 0
 for i=1,#input do
   local char = input:sub(i,i)
   if garbage then
@@ -39,6 +40,8 @@ for i=1,#input do
         ignored = true
       elseif char == ">" then
         garbage = false
+      else
+        garbageCount = garbageCount + 1
       end
     else
       ignored = false
@@ -55,3 +58,4 @@ end
 assert(groups:len() == 0, "imbalanced groups")
 
 print(score)
+print(garbageCount)
