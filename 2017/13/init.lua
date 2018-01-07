@@ -23,20 +23,16 @@ function Layer:severity(delay)
 end
 
 local firewall = {}
-local firewallSize
 for _, line in ipairs(input) do
   local depth, range = line:match("(%d+): (%d+)")
   depth, range = tonumber(depth), tonumber(range)
   firewall[depth] = Layer.new(depth, range)
-  firewallSize = depth
 end
 
 -- Part 1
 local severity = 0
-for i=0,firewallSize do
-  if firewall[i] then
-    severity = severity + firewall[i]:severity()
-  end
+for _, layer in pairs(firewall) do
+  severity = severity + layer:severity()
 end
 print(severity)
 
@@ -44,8 +40,8 @@ print(severity)
 local delay = 0
 while true do
   local caught = false
-  for i=0,firewallSize do
-    if firewall[i] and firewall[i]:caught(delay) then
+  for _, layer in pairs(firewall) do
+    if layer:caught(delay) then
       caught = true
       break
     end
