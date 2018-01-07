@@ -3,9 +3,10 @@ local input = (function(f) local t={}; for l in assert(io.lines(f)) do t[#t+1] =
 local Generator = {}
 Generator.__index = Generator
 
-function Generator.new(factor)
+function Generator.new(factor, start)
   local self = setmetatable({}, Generator)
-  self.value = nil
+  self.start = start
+  self.value = start
   self.factor = factor
   return self
 end
@@ -15,15 +16,14 @@ function Generator:next()
   return self.value
 end
 
-local A = Generator.new(16807)
-local B = Generator.new(48271)
+local A, B
 
 for _, line in ipairs(input) do
   local gen, startingValue = line:match("Generator (%w+) starts with (%d+)")
   if gen == "A" then
-    A.value = tonumber(startingValue)
+    A = Generator.new(16807, tonumber(startingValue))
   elseif gen == "B" then
-    B.value = tonumber(startingValue)
+    B = Generator.new(48271, tonumber(startingValue))
   end
 end
 
@@ -39,10 +39,28 @@ local function compare(a, b)
   end
 end
 
+-- Part 1
 local matches = 0
 for i=1,40000000 do
   local a = A:next()
   local b = B:next()
+  if compare(a, b) then
+    matches = matches + 1
+  end
+end
+print(matches)
+
+-- Part 2
+A.value, B.value = A.start, B.start
+matches = 0
+for i=1,5000000 do
+  local a, b
+  repeat
+    a = A:next()
+  until a % 4 == 0
+  repeat
+    b = B:next()
+  until b % 8 == 0
   if compare(a, b) then
     matches = matches + 1
   end
