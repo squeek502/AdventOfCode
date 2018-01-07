@@ -7,20 +7,16 @@ function Layer.new(depth, range)
   local self = setmetatable({}, Layer)
   self.depth = depth
   self.range = range
-  self.cur = 1
-  self.dir = -1
   return self
 end
 
-function Layer:step()
-  if self.cur == 1 or self.cur >= self.range then
-    self.dir = -self.dir
-  end
-  self.cur = self.cur + self.dir
+function Layer:caught(delay)
+  if delay == nil then delay = 0 end
+  return (self.depth + delay) % (self.range*2 - 2) == 0
 end
 
-function Layer:severity()
-  if self.cur == 1 then
+function Layer:severity(delay)
+  if self:caught(delay) then
     return self.depth * self.range
   end
   return 0
@@ -35,16 +31,28 @@ for _, line in ipairs(input) do
   firewallSize = depth
 end
 
-local packetPos = 0
+-- Part 1
 local severity = 0
-for picosecond = 0, firewallSize do
-  if firewall[packetPos] then
-    severity = severity + firewall[packetPos]:severity()
+for i=0,firewallSize do
+  if firewall[i] then
+    severity = severity + firewall[i]:severity()
   end
-  for i=0,firewallSize do
-    if firewall[i] then firewall[i]:step() end
-  end
-  packetPos = packetPos + 1
 end
-
 print(severity)
+
+-- Part 2
+local delay = 0
+while true do
+  local caught = false
+  for i=0,firewallSize do
+    if firewall[i] and firewall[i]:caught(delay) then
+      caught = true
+      break
+    end
+  end
+  if not caught then
+    break
+  end
+  delay = delay + 1
+end
+print(delay)
