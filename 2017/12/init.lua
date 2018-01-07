@@ -39,3 +39,35 @@ end
 
 local connections = getAllConnections(0)
 print(#connections)
+
+-- Part 2
+-- extremely unperformant, using naive implementation
+-- for detecting groups that are the same
+
+local function groupsMatch(a, b)
+  if #a ~= #b then return false end
+  for i=1,#a do
+    if not arrayContains(b, a[i]) then
+      return false
+    end
+  end
+  return true
+end
+
+local function containsGroup(groups, needle)
+  for _, group in ipairs(groups) do
+    if groupsMatch(group, needle) then
+      return true
+    end
+  end
+  return false
+end
+
+local groups = {}
+for id in pairs(directConnections) do
+  local group = getAllConnections(id)
+  if not containsGroup(groups, group) then
+    table.insert(groups, group)
+  end
+end
+print(#groups)
