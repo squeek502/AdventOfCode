@@ -2,7 +2,6 @@ local input = io.open('input.txt'):read('*l')
 
 local Stack = {}
 Stack.__index = Stack
-Stack.__len = function(self) return #self.stack end
 
 function Stack.new()
   local self = setmetatable({}, Stack)
