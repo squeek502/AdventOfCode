@@ -28,8 +28,14 @@ local moves = {
   ne = function(x, y) return x+1, y-1 end,
 }
 
+local furthest = -math.huge
 local x, y = 1, 1
 for move in input:gmatch("(%w+)") do
   x, y = moves[move](x, y)
+  local d = dist(1, 1, x, y)
+  if d > furthest then
+    furthest = d
+  end
 end
 print(dist(1, 1, x, y))
+print(furthest)
