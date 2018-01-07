@@ -37,21 +37,15 @@ local function getAllConnections(id, seen)
   return connections
 end
 
+-- Part 1
+
 local connections = getAllConnections(0)
 print(#connections)
 
 -- Part 2
--- extremely unperformant, using naive implementation
--- for detecting groups that are the same
 
 local function groupsMatch(a, b)
-  if #a ~= #b then return false end
-  for i=1,#a do
-    if not arrayContains(b, a[i]) then
-      return false
-    end
-  end
-  return true
+  return arrayContains(a, b[1])
 end
 
 local function containsGroup(groups, needle)
@@ -65,9 +59,13 @@ end
 
 local groups = {}
 for id in pairs(directConnections) do
-  local group = getAllConnections(id)
-  if not containsGroup(groups, group) then
-    table.insert(groups, group)
+  -- skip looking up groups for ids that are
+  -- already part of a known group
+  if not containsGroup(groups, {id}) then
+    local group = getAllConnections(id)
+    if not containsGroup(groups, group) then
+      table.insert(groups, group)
+    end
   end
 end
 print(#groups)
