@@ -42,6 +42,7 @@ epochJDN = jdn(timestamps[1])
 local guard
 local lastEvent
 local amountSlept = {}
+local sleepSchedules = {}
 for i=1,#timestamps do
   local timestamp = timestamps[i]
   local time = epochMinutes(timestamp)
@@ -51,10 +52,15 @@ for i=1,#timestamps do
   elseif event == "wakes up" then
     local timeAsleep = time - lastEvent
     amountSlept[guard] = (amountSlept[guard] or 0) + timeAsleep
+    if sleepSchedules[guard] == nil then sleepSchedules[guard] = {} end
+    for min=lastEvent, time-1 do
+      sleepSchedules[guard][min % 60] = (sleepSchedules[guard][min % 60] or 0) + 1
+    end
   end
   lastEvent = time
 end
 
+-- Part 1
 local maxSleep, sleepiest = -math.huge, nil
 for id, amount in pairs(amountSlept) do
   if amount > maxSleep then
@@ -63,25 +69,8 @@ for id, amount in pairs(amountSlept) do
   end
 end
 
-local sleepiestSchedule = {}
-for i=1,#timestamps do
-  local timestamp = timestamps[i]
-  local time = epochMinutes(timestamp)
-  local event = events[timestamp]
-  if event:match("^Guard") then
-    guard = tonumber(event:match("Guard #(%d+) begins shift"))
-  elseif event == "wakes up" then
-    if guard == sleepiest then
-      for min=lastEvent, time-1 do
-        sleepiestSchedule[min % 60] = (sleepiestSchedule[min % 60] or 0) + 1
-      end
-    end
-  end
-  lastEvent = time
-end
-
 local maxAmount, maxMin = 0, nil
-for min, amount in pairs(sleepiestSchedule) do
+for min, amount in pairs(sleepSchedules[sleepiest]) do
   if amount > maxAmount then
     maxAmount = amount
     maxMin = min
@@ -89,3 +78,17 @@ for min, amount in pairs(sleepiestSchedule) do
 end
 
 print(sleepiest * maxMin)
+
+-- Part 2
+local mostAsleepGuard, mostAsleepMin, mostAsleepAmount = nil, nil, 0
+for id, schedule in pairs(sleepSchedules) do
+  for min, amount in pairs(schedule) do
+    if amount > mostAsleepAmount then
+      mostAsleepAmount = amount
+      mostAsleepGuard = id
+      mostAsleepMin = min
+    end
+  end
+end
+
+print(mostAsleepGuard * mostAsleepMin)
