@@ -16,24 +16,33 @@ local function manhattanDist(x1, y1, x2, y2)
   return math.abs(x2-x1) + math.abs(y2-y1)
 end
 
-local function getClosestCoord(x, y, coords)
-  local minDist, minCoord = math.huge
+local function getDistances(x, y, coords)
   local dists = {}
   for _, coord in ipairs(coords) do
-    local dist = manhattanDist(x, y, coord.x, coord.y)
-    dists[dist] = (dists[dist] or 0) + 1
+    dists[coord] = manhattanDist(x, y, coord.x, coord.y)
+  end
+  return dists
+end
+
+local function getClosestCoord(x, y, coords)
+  local dists = getDistances(x, y, coords)
+  local minDist, minCoord = math.huge
+  for coord, dist in pairs(dists) do
     if dist < minDist then
       minDist = dist
       minCoord = coord
     end
   end
   -- ensure there's no points tied in distance
-  if dists[minDist] > 1 then
-    return nil, minDist
+  for coord, dist in pairs(dists) do
+    if dist == minDist and coord ~= minCoord then
+      return nil, minDist
+    end
   end
   return minCoord, minDist
 end
 
+-- Part 1
 local areas = {}
 for x=minX,maxX do
   for y=minY,maxY do
@@ -42,7 +51,7 @@ for x=minX,maxX do
     -- any coord that is closest to a point on an edge will have infinite area
     if coord and isEdge then
       areas[coord] = math.huge
-    elseif coord and not isEdge and areas[coord] ~= math.huge then
+    elseif coord and areas[coord] ~= math.huge then
       areas[coord] = (areas[coord] or 0) + 1
     end
   end
@@ -55,3 +64,19 @@ for coord, area in pairs(areas) do
   end
 end
 print(maxArea)
+
+-- Part 2
+local regionSize = 0
+for x=minX,maxX do
+  for y=minY,maxY do
+    local dists = getDistances(x, y, coords)
+    local sum = 0
+    for _, dist in pairs(dists) do
+      sum = sum + dist
+    end
+    if sum < 10000 then
+      regionSize = regionSize + 1
+    end
+  end
+end
+print(regionSize)
