@@ -17,5 +17,18 @@ local function react(str)
   return table.concat(stack)
 end
 
+-- Part 1
 local output = react(input)
 print(#output)
+
+-- Part 2
+local min = math.huge
+for byte=string.byte('a'),string.byte('z') do
+  local char = string.char(byte)
+  local str = output:gsub('['..char..char:upper()..']+', '')
+  local reacted = react(str)
+  if #reacted < min then
+    min = #reacted
+  end
+end
+print(min)
