@@ -17,10 +17,11 @@ local function requirementsMet(requirements, finished)
   return true
 end
 
-local function getAvailable(requirements, finished)
+local function getAvailable(requirements, finished, inprogress)
+  if inprogress == nil then inprogress = {} end
   local available = {}
   for dependent, dependencies in pairs(requirements) do
-    if not finished[dependent] and requirementsMet(dependencies, finished) then
+    if not finished[dependent] and not inprogress[dependent] and requirementsMet(dependencies, finished) then
       table.insert(available, dependent)
     end
   end
@@ -34,14 +35,66 @@ local function chooseNextStep(available)
   return available[1]
 end
 
-local finished = {}
-local available = getAvailable(requirements, finished)
+-- Part 1
+do
+  local finished = {}
+  local available = getAvailable(requirements, finished)
 
-local order = {}
-while #available > 0 do
-  local step = chooseNextStep(available)
-  finished[step] = true
-  table.insert(order, step)
-  available = getAvailable(requirements, finished)
+  local order = {}
+  while #available > 0 do
+    local step = chooseNextStep(available)
+    finished[step] = true
+    table.insert(order, step)
+    available = getAvailable(requirements, finished)
+  end
+  print(table.concat(order))
 end
-print(table.concat(order))
+
+local function getTimeForStep(step)
+  local baseTime = 60
+  local addedTime = step:byte() - ('A'):byte() + 1
+  return baseTime + addedTime
+end
+
+-- Part 2
+do
+  local timeFinished = {}
+  local workers, numWorkers = {}, 5
+  local finished = {}
+  local curTime = 0
+
+  while true do
+    local stillWorking = false
+    -- resolve finished steps
+    for i=1,numWorkers do
+      local step = workers[i]
+      if timeFinished[step] ~= nil then
+        if curTime >= timeFinished[step] then
+          timeFinished[step] = nil
+          finished[step] = true
+          workers[i] = nil
+        else
+          stillWorking = true
+        end
+      end
+    end
+    -- assign steps to idle workers
+    for i=1,numWorkers do
+      local step = workers[i]
+      if not step then
+        step = chooseNextStep(getAvailable(requirements, finished, timeFinished))
+        if step then
+          workers[i] = step
+          timeFinished[step] = curTime + getTimeForStep(step)
+          stillWorking = true
+        end
+      end
+    end
+    if not stillWorking then
+      break
+    end
+    curTime = curTime + 1
+  end
+
+  print(curTime)
+end
