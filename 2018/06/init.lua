@@ -34,78 +34,24 @@ local function getClosestCoord(x, y, coords)
   return minCoord, minDist
 end
 
-local function isFinite(coord, coords)
-  local hasLeftBound = false
-  for x = coord.x, minX, -1 do
-    if coord ~= getClosestCoord(x, coord.y, coords) then
-      hasLeftBound = true
+local areas = {}
+for x=minX,maxX do
+  for y=minY,maxY do
+    local coord = getClosestCoord(x, y, coords)
+    local isEdge = x == minX or x == maxX or y == minY or y == maxY
+    -- any coord that is closest to a point on an edge will have infinite area
+    if coord and isEdge then
+      areas[coord] = math.huge
+    elseif coord and not isEdge and areas[coord] ~= math.huge then
+      areas[coord] = (areas[coord] or 0) + 1
     end
   end
-  local hasRightBound = false
-  for x = coord.x, maxX, 1 do
-    if coord ~= getClosestCoord(x, coord.y, coords) then
-      hasRightBound = true
-    end
-  end
-  local hasUpBound = false
-  for y = coord.y, minY, -1 do
-    if coord ~= getClosestCoord(coord.x, y, coords) then
-      hasUpBound = true
-    end
-  end
-  local hasDownBound = false
-  for y = coord.y, maxY, 1 do
-    if coord ~= getClosestCoord(coord.x, y, coords) then
-      hasDownBound = true
-    end
-  end
-  return hasLeftBound and hasRightBound and hasUpBound and hasDownBound
-  --return coord.x > minX and coord.x < maxX and coord.y > minY and coord.y < maxY
-end
-
-local function numClosestInRing(coord, ring)
-  local num = 0
-  for off=-ring, ring do
-    if getClosestCoord(coord.x+off, coord.y+ring, coords) == coord then
-      num = num + 1
-    end
-    if getClosestCoord(coord.x+off, coord.y-ring, coords) == coord then
-      num = num + 1
-    end
-    if math.abs(off) ~= ring then
-      if getClosestCoord(coord.x+ring, coord.y+off, coords) == coord then
-        num = num + 1
-      end
-      if getClosestCoord(coord.x-ring, coord.y+off, coords) == coord then
-        num = num + 1
-      end
-    end
-  end
-  return num
-end
-
-local function getArea(coord, coords)
-  local ring = 1
-  local area = 1
-  while true do
-    local numClosest = numClosestInRing(coord, ring)
-    if numClosest == 0 then
-      break
-    end
-    area = area + numClosest
-    ring = ring + 1
-  end
-  return area
 end
 
 local maxArea = -math.huge
-for i, coord in ipairs(coords) do
-  if isFinite(coord, coords) then
-    local area = getArea(coord, coords)
-    if area > maxArea then
-      maxArea = area
-    end
-    print(i, coord.x, coord.y, getArea(coord, coords))
+for coord, area in pairs(areas) do
+  if area ~= math.huge and area > maxArea then
+    maxArea = area
   end
 end
 print(maxArea)
