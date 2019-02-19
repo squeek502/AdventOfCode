@@ -57,6 +57,7 @@ local function flatten(node)
   return flat
 end
 
+-- Part 1
 local sum = 0
 for _, node in ipairs(flatten(root)) do
   for _, metadata in ipairs(node.metadata) do
@@ -64,3 +65,35 @@ for _, node in ipairs(flatten(root)) do
   end
 end
 print(sum)
+
+local function computeValue(root)
+  local cache = {}
+
+  local function compute(node)
+    -- if its been computed before, just return it
+    if cache[node] then return cache[node] end
+
+    local value = 0
+
+    if #node.children == 0 then
+      for _, metadata in ipairs(node.metadata) do
+        value = value + metadata
+      end
+    else
+      for _, metadata in ipairs(node.metadata) do
+        local child = node.children[metadata]
+        if child then
+          value = value + compute(child)
+        end
+      end
+    end
+
+    cache[node] = value
+    return value
+  end
+
+  return compute(root)
+end
+
+-- Part 2
+print(computeValue(root))
