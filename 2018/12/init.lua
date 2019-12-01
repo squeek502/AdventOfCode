@@ -1,5 +1,8 @@
 local input = (function(f) local t={}; for l in assert(io.lines(f)) do t[#t+1] = l end; return t end)('input.txt')
 
+local _DEBUG = false
+local debugprint = function(...) if _DEBUG then print(...) end end
+
 local Pots = {}
 Pots.__index = Pots
 
@@ -66,17 +69,24 @@ function Pots:runGeneration()
       end
     end
   end
+  -- increment minIndex until we hit a filled pot
+  -- so that minIndex doesn't get stuck at an obsolete index
+  while not newState[self.minIndex] and self.minIndex < self.maxIndex do
+    self.minIndex = self.minIndex + 1
+  end
   self.state = newState
 end
 
-function Pots:__tostring()
-  local state = {self.minIndex,':'}
+function Pots:stringState()
+  local state = {}
   for i=self.minIndex,self.maxIndex do
     table.insert(state, self.state[i] and '#' or '.')
   end
-  table.insert(state, ':')
-  table.insert(state, self.maxIndex)
   return table.concat(state)
+end
+
+function Pots:__tostring()
+  return string.format("%d:%s:%d", self.minIndex, self:stringState(), self.maxIndex)
 end
 
 local initialState = table.remove(input, 1):match("initial state: (.*)")
@@ -88,10 +98,35 @@ for _, rule in ipairs(input) do
   pots:addRule(pattern, result)
 end
 
-print('0:', pots)
+-- Part 1
+debugprint('0:', pots)
 for i=1,20 do
   pots:runGeneration()
-  print(i..':', pots)
+  debugprint(i..':', pots)
 end
+local sumAfter20 = pots:sum()
+print(sumAfter20)
 
-print(pots:sum())
+-- Part 2
+-- eventually the filled pots just shift over each generation
+-- without changing, so we detect when that happens and
+-- extrapolate for the remaining iterations
+local N = 50000000000
+local lastState, lastSum = pots:stringState(), sumAfter20
+local loopStart, loopDelta
+for i=21,N do
+  pots:runGeneration()
+  local curState = pots:stringState()
+  if curState == lastState then
+    loopStart = i-1
+    loopDelta = pots:sum() - lastSum
+    break
+  end
+  lastState = curState
+  lastSum = pots:sum()
+end
+debugprint('loop detected at iteration '..loopStart..' with loop delta '..loopDelta)
+debugprint('looping pattern: ' .. pots:stringState())
+local remainingIterations = N - loopStart
+local finalSum = lastSum + remainingIterations * loopDelta
+print(finalSum)
