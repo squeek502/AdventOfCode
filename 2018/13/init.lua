@@ -1,19 +1,12 @@
 local input = (function(f) local t={}; for l in assert(io.lines(f)) do t[#t+1] = l end; return t end)('input.txt')
 
-local tracks = {}
-local trains = {}
 local TURN_LEFT = 0
 local TURN_NONE = 1
 local TURN_RIGHT = 2
 
-local TRACK_TURN_ONE = '\\'
-local INTERSECTION = '+'
-local TRACK_TURN_TWO = '/'
-
 local Train = {}
 Train.__index = Train
 
-local TRAIN_NEXT_ID = 1
 function Train.new(x, y, xvel, yvel)
   local self = setmetatable({}, Train)
   self.x = x
@@ -21,26 +14,25 @@ function Train.new(x, y, xvel, yvel)
   self.xvel = xvel or 0
   self.yvel = yvel or 0
   self.turnIndex = 0
-  self.id = TRAIN_NEXT_ID
-  TRAIN_NEXT_ID = TRAIN_NEXT_ID + 1
+  self.collided = false
   return self
 end
 
 function Train:move(tracks)
+  if self.collided then return end
   self.x = self.x + self.xvel
   self.y = self.y + self.yvel
   local trackType = tracks[self.x] and tracks[self.x][self.y]
   if trackType ~= nil then
-    io.write(string.format('hit %s => ', trackType))
     local turnType
-    if trackType == INTERSECTION then
+    if trackType == '+' then
       turnType = self.turnIndex % 3
       self.turnIndex = self.turnIndex + 1
     else
       if self.xvel ~= 0 then
-        turnType = trackType == TRACK_TURN_ONE and TURN_RIGHT or TURN_LEFT
+        turnType = trackType == '\\' and TURN_RIGHT or TURN_LEFT
       else
-        turnType = trackType == TRACK_TURN_ONE and TURN_LEFT or TURN_RIGHT
+        turnType = trackType == '\\' and TURN_LEFT or TURN_RIGHT
       end
     end
     self:turn(turnType)
@@ -48,13 +40,10 @@ function Train:move(tracks)
 end
 
 function Train:turn(turnType)
-  local turnTypeString = (turnType == TURN_LEFT and 'lt') or (turnType == TURN_RIGHT and 'rt') or 'str'
-  io.write(turnTypeString..' => ')
+  local modifier
   if turnType == TURN_NONE then
     return
-  end
-  local modifier
-  if turnType == TURN_LEFT then
+  elseif turnType == TURN_LEFT then
     -- > => ^ : +x => -y
     -- < => v : -x => +y
     -- ^ => < : -y => -x
@@ -84,46 +73,55 @@ function Train:__tostring()
   return string.format("%s(%d,%d)", self:char(), self.x, self.y)
 end
 
-for y, line in ipairs(input) do
-  for x=1,#line do
-    local c = line:sub(x,x)
-    if c:match('[\\/+]') then
-      if not tracks[x] then tracks[x] = {} end
-      if c == '+' then
-        tracks[x][y] = INTERSECTION
-      else
-        tracks[x][y] = c == '\\' and TRACK_TURN_ONE or TRACK_TURN_TWO
+local function loadFromInput(input)
+  local tracks, trains = {}, {}
+  for y, line in ipairs(input) do
+    for x=1,#line do
+      local c = line:sub(x,x)
+      if c:match('[\\/+]') then
+        if not tracks[x] then tracks[x] = {} end
+        tracks[x][y] = c
+      elseif c:match('[v^<>]') then
+        local xvel, yvel = 0, 0
+        if c == '^' then
+          yvel = -1
+        elseif c == 'v' then
+          yvel = 1
+        elseif c == '<' then
+          xvel = -1
+        elseif c == '>' then
+          xvel = 1
+        end
+        local train = Train.new(x, y, xvel, yvel)
+        table.insert(trains, train)
       end
-    elseif c:match('[v^<>]') then
-      local xvel, yvel = 0, 0
-      if c == '^' then
-        yvel = -1
-      elseif c == 'v' then
-        yvel = 1
-      elseif c == '<' then
-        xvel = -1
-      elseif c == '>' then
-        xvel = 1
-      end
-      local train = Train.new(x, y, xvel, yvel)
-      table.insert(trains, train)
     end
   end
+  return tracks, trains
 end
 
+local tracks, trains = loadFromInput(input)
+
 local function checkForCollisions(trains)
-  local positions = {}
+  local collisions = {}
+  local seen = {}
   for _, train in ipairs(trains) do
-    if positions[train.x] and positions[train.x][train.y] then
-      return {x=train.x, y=train.y}
+    if not train.collided then
+      if seen[train.x] and seen[train.x][train.y] then
+        train.collided = true
+        seen[train.x][train.y].collided = true
+        table.insert(collisions, {x=train.x, y=train.y, train1=train, train2=seen[train.x][train.y]})
+      else
+        if not seen[train.x] then seen[train.x] = {} end
+        seen[train.x][train.y] = train
+      end
     end
-    if not positions[train.x] then positions[train.x] = {} end
-    positions[train.x][train.y] = true
   end
-  return false
+  return collisions
 end
 
 local function tick(tracks, trains)
+  local collisions = {}
   table.sort(trains, function(a, b)
     if a.y == b.y then
       return a.x < b.x
@@ -131,21 +129,40 @@ local function tick(tracks, trains)
     return a.y < b.y
   end)
   for _, train in ipairs(trains) do
-    io.write(string.format("%s => ", tostring(train)))
     train:move(tracks)
-    print(train)
-    local collision = checkForCollisions(trains)
-    if collision then
-      return collision
+    local curCollisions = checkForCollisions(trains)
+    for _, collision in ipairs(curCollisions) do
+      table.insert(collisions, collision)
     end
   end
-  return nil
+  return collisions
 end
 
-local collisionPoint
-local tickNum = 0
+local function findTrain(trains, needle)
+  for i, train in ipairs(trains) do
+    if train == needle then
+      return i
+    end
+  end
+end
+
+local firstCollisionPoint
 repeat
-  collisionPoint = tick(tracks, trains)
-  tickNum = tickNum+1
-until collisionPoint ~= nil
-print(string.format('%d,%d', collisionPoint.x-1, collisionPoint.y-1))
+  local collisions = tick(tracks, trains)
+  if #collisions > 0 then
+    firstCollisionPoint = firstCollisionPoint or collisions[1]
+    -- remove collided trains
+    for _, collision in ipairs(collisions) do
+      for _, v in ipairs({collision.train1, collision.train2}) do
+        local i = assert(findTrain(trains, v))
+        table.remove(trains, i)
+      end
+    end
+  end
+until #trains==1
+
+-- Part 1
+print(string.format('%d,%d', firstCollisionPoint.x-1, firstCollisionPoint.y-1))
+
+-- Part 2
+print(string.format('%d,%d', trains[1].x-1, trains[1].y-1))
