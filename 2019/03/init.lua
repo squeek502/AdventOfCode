@@ -14,32 +14,37 @@ end
 local Line = {}
 Line.__index = Line
 
-function Line.new(x1, y1, x2, y2)
+function Line.new(x1, y1, x2, y2, steps)
   local self = setmetatable({}, Line)
   self.x1, self.y1 = x1, y1
   self.x2, self.y2 = x2, y2
+  -- steps is the number of steps to get to x1, y1
+  self.steps = steps
   return self
 end
 
+-- http://www-cs.ccny.cuny.edu/~wolberg/capstone/intersection/Intersection%20point%20of%20two%20lines.html
 function Line:intersection(other)
-  local x12 = self.x1 - self.x2
-  local x34 = other.x1 - other.x2
-  local y12 = self.y1 - self.y2
-  local y34 = other.y1 - other.y2
+  local x21 = self.x2 - self.x1
+  local x43 = other.x2 - other.x1
+  local y21 = self.y2 - self.y1
+  local y43 = other.y2 - other.y1
 
-  local denom = y34 * x12 - x34 * y12
+  local denom = y43 * x21 - x43 * y21
+  -- note that this check excludes lines that intersect at their start
+  -- or end points (i.e. the first segments of the wires at the origin)
   if denom == 0 then
     return nil
   end
-  local ua = (-x34 * (self.y1 - other.y1) + y34 * (self.x1 - other.x1)) / denom
-  local ub = (-x12 * (self.y1 - other.y1) + y12 * (self.x1 - other.x1)) / denom
+  local ua = (x43 * (self.y1 - other.y1) - y43 * (self.x1 - other.x1)) / denom
+  local ub = (x21 * (self.y1 - other.y1) - y21 * (self.x1 - other.x1)) / denom
 
-  if ua >= 0 and ua <= 1 and ub >= 0 and ub <= 1 then
-    local a = self.x1 * self.y2 - self.y1 * self.x2
-    local b = other.x1 * other.y2 - other.y1 * other.x2
-    local x = (a * x34 - b * x12) / denom
-    local y = (a * y34 - b * y12) / denom
-    return {x=x, y=y}
+  if (ua >= 0 and ua <= 1) and (ub >= 0 and ub <= 1) then
+    local x = self.x1 + ua * (self.x2 - self.x1)
+    local y = self.y1 + ua * (self.y2 - self.y1)
+    -- add in the steps to get from x1, y1 to the intersection point on both lines
+    local stepsToIntersection = manhattanDist(x, y, self.x1, self.y1) + manhattanDist(x, y, other.x1, other.y1)
+    return {x=x, y=y}, self.steps + other.steps + stepsToIntersection
   end
 end
 
@@ -50,6 +55,7 @@ function Wire.new(desc)
   local self = setmetatable({}, Wire)
   self.lines = {}
   local x, y = 0, 0
+  local step = 0
   for _, vec in ipairs(split(desc, ',')) do
     local dir, dist = vec:match("([URDL])(%d+)")
     dist = tonumber(dist)
@@ -58,9 +64,10 @@ function Wire.new(desc)
     if dir == 'R' then x2 = x + dist end
     if dir == 'D' then y2 = y - dist end
     if dir == 'L' then x2 = x - dist end
-    local line = Line.new(x, y, x2, y2)
+    local line = Line.new(x, y, x2, y2, step)
     table.insert(self.lines, line)
     x, y = x2, y2
+    step = step + dist
   end
   return self
 end
@@ -69,15 +76,11 @@ function Wire:intersections(other)
   local points = {}
   for _, line1 in ipairs(self.lines) do
     for _, line2 in ipairs(other.lines) do
-      local point = line1:intersection(line2)
+      local point, steps = line1:intersection(line2)
       if point then
-        table.insert(points, point)
+        table.insert(points, {point=point, steps=steps})
       end
     end
-  end
-  -- remove the origin intersection
-  if #points > 0 then
-    table.remove(points, 1)
   end
   return points
 end
@@ -87,13 +90,18 @@ for i, line in ipairs(input) do
   wires[i] = Wire.new(line)
 end
 
-local closestPoint, closestDist = nil, math.huge
-for _, point in ipairs(wires[1]:intersections(wires[2])) do
-  local dist = manhattanDist(point.x, point.y, 0, 0)
+local closestDist, closestSteps = math.huge, math.huge
+for _, intersection in ipairs(wires[1]:intersections(wires[2])) do
+  local dist = manhattanDist(intersection.point.x, intersection.point.y, 0, 0)
   if dist < closestDist then
-    closestPoint = point
     closestDist = dist
+  end
+  if intersection.steps < closestSteps then
+    closestSteps = intersection.steps
   end
 end
 
+-- Part 1
 print(closestDist)
+-- Part 2
+print(closestSteps)
