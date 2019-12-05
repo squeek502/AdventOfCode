@@ -58,6 +58,45 @@ local opcodes = {
     output(val)
     return index+2
   end,
+  -- jump-if-true
+  [5] = function(vals, index, modes)
+    local a, b = getParam(vals, index+1, modes[1]), getParam(vals, index+2, modes[2])
+    if a ~= 0 then
+      return b
+    else
+      return index+3
+    end
+  end,
+  -- jump-if-false
+  [6] = function(vals, index, modes)
+    local a, b = getParam(vals, index+1, modes[1]), getParam(vals, index+2, modes[2])
+    if a == 0 then
+      return b
+    else
+      return index+3
+    end
+  end,
+  -- less than
+  [7] = function(vals, index, modes)
+    local a, b, c = getParam(vals, index+1, modes[1]), getParam(vals, index+2, modes[2]), vals[index+3]
+    if a < b then
+      vals[c] = 1
+    else
+      vals[c] = 0
+    end
+    return index+4
+  end,
+  -- equals
+  [8] = function(vals, index, modes)
+    local a, b, c = getParam(vals, index+1, modes[1]), getParam(vals, index+2, modes[2]), vals[index+3]
+    if a == b then
+      vals[c] = 1
+    else
+      vals[c] = 0
+    end
+    return index+4
+  end,
+  -- halt
   [99] = function(vals, index, modes)
     return nil
   end
@@ -87,5 +126,11 @@ local function run(vals)
 end
 
 -- Part 1
+INPUT = 1
 local result = run(load())
+print(result)
+
+-- Part 2
+INPUT = 5
+result = run(load())
 print(result)
