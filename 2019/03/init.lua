@@ -31,8 +31,6 @@ function Line:intersection(other)
   local y43 = other.y2 - other.y1
 
   local denom = y43 * x21 - x43 * y21
-  -- note that this check excludes lines that intersect at their start
-  -- or end points (i.e. the first segments of the wires at the origin)
   if denom == 0 then
     return nil
   end
@@ -81,6 +79,11 @@ function Wire:intersections(other)
         table.insert(points, {point=point, steps=steps})
       end
     end
+  end
+  -- remove the intersection at the origin point if it exists; its not a
+  -- 'real' intersection point for this problem
+  if points[1] and points[1].steps == 0 then
+    table.remove(points, 1)
   end
   return points
 end
